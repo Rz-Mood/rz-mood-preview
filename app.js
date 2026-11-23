@@ -1,5 +1,5 @@
 "use strict";
-// Rz Station — Internet Archive (free & legal music): search, play, download, share.
+// Rz Station — Free To Use primary music search with optional catalog fallbacks.
 // Works both as a Chrome extension page and as a phone web app.
 const $ = (id) => document.getElementById(id);
 const AUDIO_EXT = /\.(mp3|ogg|oga|opus|flac|wav|m4a|aac)(\?.*)?$/i;
@@ -51,7 +51,7 @@ const I18N = {
     favorite: "افزودن به علاقه‌مندی‌ها", unfavorite: "حذف از علاقه‌مندی‌ها",
     favAdded: "به علاقه‌مندی‌ها اضافه شد ❤", favRemoved: "از علاقه‌مندی‌ها حذف شد",
     tabRadio: "رادیو", radio: "رادیو", radioSwitchLabel: "آهنگ بعدی بر اساس سبک", radioToggleTitle: "رادیو: آهنگ بعدی بر اساس سبک",
-    radioHint: "وقتی روشن باشد، بعد از تمام شدن آهنگ (یا با زدن «بعدی») یک آهنگ با سبک مشابه آهنگ فعلی از Internet Archive انتخاب و پخش می‌شود.",
+    radioHint: "وقتی روشن باشد، آهنگ بعدی ابتدا از Free To Use و بر اساس آهنگ فعلی پیدا می‌شود؛ اگر نتیجه‌ای نبود، منبع پشتیبان انتخاب‌شده امتحان می‌شود.",
     radioStyleTitle: "سبک آهنگ فعلی", radioNoTrack: "هنوز آهنگی پخش نشده است. یک آهنگ پخش کنید یا از ایستگاه‌ها شروع کنید.",
     radioLoadingTags: "در حال تشخیص سبک…", radioNoTags: "برای این آهنگ سبکی ثبت نشده. از ایستگاه‌ها یک سبک انتخاب کنید.",
     radioModeAuto: "حالت خودکار: آهنگ بعدی با سبک همین آهنگ انتخاب می‌شود.",
@@ -62,9 +62,10 @@ const I18N = {
     radioNoResult: "آهنگ مشابهی پیدا نشد. سبک دیگری را امتحان کنید.", radioOn: "رادیو روشن شد 📻", radioOff: "رادیو خاموش شد",
     radioFail: "پیدا کردن آهنگ مشابه ناموفق بود. اتصال را بررسی کنید.", radioUseStyle: "سبک ثابت شد: {tag}",
     radioSourceTitle: "منبع رادیو",
+    srcHintFtu: "Free To Use: منبع پیش‌فرض رادیو؛ آهنگ مشابه از API رسمی جستجو می‌شود.",
     srcHintJam: "Jamendo: موسیقی Creative Commons. آهنگ بعدی بر اساس شباهت واقعی (ژانر، ساز، حال‌وهوا، وکال یا بی‌کلام) انتخاب می‌شود و دقیق‌تر است.",
     srcHintArc: "Internet Archive: انتخاب بر اساس برچسب‌های ثبت‌شده‌ی آلبوم؛ دقت کمتر.",
-    srcNoKey: "برای رادیوی دقیق‌تر، Client ID رایگان Jamendo را در تنظیمات وارد کنید. تا آن موقع از Internet Archive استفاده می‌شود.",
+    srcNoKey: "برای استفاده از Jamendo، Client ID رایگان آن را در تنظیمات وارد کنید.",
     jamTitle: "سرویس رادیو (Jamendo)",
     jamHint: "Jamendo موسیقی آزاد (Creative Commons) دارد و آهنگ مشابه را بر اساس ژانر، ساز و حال‌وهوا پیدا می‌کند. یک Client ID رایگان از <a href=\"https://devportal.jamendo.com\" target=\"_blank\" rel=\"noopener\" dir=\"ltr\">devportal.jamendo.com</a> بگیرید (ثبت‌نام، ساخت اپلیکیشن، کپی Client ID) و اینجا بچسبانید.",
     jamPh: "Client ID",
@@ -79,7 +80,7 @@ const I18N = {
     matchPct: "تطابق {n}٪",
     modeLabel: "نوع جستجو", modeFree: "آزاد (دانلودی)", modeOriginal: "اصلی (YouTube)",
     searchPhOriginal: "نام آهنگ و خواننده، مثلاً Shape of You Ed Sheeran…",
-    modeHintFree: "در Internet Archive جستجو می‌شود؛ آثار آزاد و قابل دانلود نمایش داده می‌شوند.",
+    modeHintFree: "جستجوی اصلی از Free To Use انجام می‌شود؛ فقط آهنگ‌های غیر Premium نمایش داده می‌شوند. در صورت اختلال، Internet Archive پشتیبان است.",
     modeHintOriginal: "نسخه‌ی اصلی آهنگ‌ها با پخش‌کننده‌ی رسمی YouTube پخش می‌شود. دانلود ندارد؛ ملاک، پخش آهنگ اصلی است. لینک YouTube، Spotify و SoundCloud را هم می‌توانید در «پخش از لینک» بچسبانید.",
     ytNeedKey: "برای جستجوی آهنگ اصلی، کلید رایگان YouTube را در تنظیمات وارد کنید. بدون کلید هم می‌توانید لینک YouTube/Spotify/SoundCloud را در «پخش از لینک» بچسبانید.",
     ytSearchFail: "جستجو در YouTube ناموفق بود. کلید یا اتصال را بررسی کنید (ممکن است YouTube روی اینترنت شما بسته باشد).",
@@ -113,7 +114,7 @@ const I18N = {
     heroTitle: "جستجوی آهنگ", heroSub: "نام آهنگ یا خواننده را بنویسید و روی نتیجه بزنید تا پخش شود.",
     step1: "جستجو", step2: "روی آهنگ بزنید", step3: "پخش می‌شود",
     modeAll: "همه منابع", searchPhAll: "نام آهنگ یا خواننده…",
-    modeHintAll: "هم‌زمان در YouTube، Spotify، Jamendo و Internet Archive جستجو می‌شود. آهنگ‌های اصلی با پخش‌کننده‌ی رسمی پخش می‌شوند و دانلود ندارند.",
+    modeHintAll: "هم‌زمان در Free To Use، YouTube، Spotify، Jamendo و Internet Archive جستجو می‌شود. آهنگ‌های اصلی با پخش‌کننده‌ی رسمی پخش می‌شوند و دانلود ندارند.",
     allMissing: "منابع غیرفعال: {list}. از تنظیمات فعالشان کنید.",
     srcAll: "همه", srcOff: "کلید لازم", srcConnect: "نیاز به اتصال"
   },
@@ -157,7 +158,7 @@ const I18N = {
     favorite: "Add to favorites", unfavorite: "Remove from favorites",
     favAdded: "Added to favorites ❤", favRemoved: "Removed from favorites",
     tabRadio: "Radio", radio: "Radio", radioSwitchLabel: "Next song by style", radioToggleTitle: "Radio: next song by style",
-    radioHint: "When on, after a song ends (or when you press “Next”) a song with a similar style to the current one is picked from the Internet Archive and played.",
+    radioHint: "When on, the next song is first searched on Free To Use based on the current track; the selected fallback source is tried if no match is found.",
     radioStyleTitle: "Style of the current song", radioNoTrack: "Nothing is playing yet. Play a song or start from a station.",
     radioLoadingTags: "Detecting style…", radioNoTags: "No style is listed for this song. Pick one from the stations.",
     radioModeAuto: "Auto mode: the next song follows the style of this one.",
@@ -168,9 +169,10 @@ const I18N = {
     radioNoResult: "No similar song found. Try another style.", radioOn: "Radio on 📻", radioOff: "Radio off",
     radioFail: "Couldn't find a similar song. Check your connection.", radioUseStyle: "Style fixed: {tag}",
     radioSourceTitle: "Radio source",
+    srcHintFtu: "Free To Use: default radio source; similar tracks are searched through its official API.",
     srcHintJam: "Jamendo: Creative Commons music. The next song is chosen by real similarity (genre, instruments, mood, vocal or instrumental), so it is more accurate.",
     srcHintArc: "Internet Archive: chosen from the tags listed on the album; less accurate.",
-    srcNoKey: "For a more accurate radio, enter your free Jamendo Client ID in Settings. Until then the Internet Archive is used.",
+    srcNoKey: "To use Jamendo, enter its free Client ID in Settings.",
     jamTitle: "Radio service (Jamendo)",
     jamHint: "Jamendo has free (Creative Commons) music and finds similar songs by genre, instruments and mood. Get a free Client ID from <a href=\"https://devportal.jamendo.com\" target=\"_blank\" rel=\"noopener\" dir=\"ltr\">devportal.jamendo.com</a> (sign up, create an app, copy the Client ID) and paste it here.",
     jamPh: "Client ID",
@@ -185,7 +187,7 @@ const I18N = {
     matchPct: "{n}% match",
     modeLabel: "Search type", modeFree: "Free (downloadable)", modeOriginal: "Original (YouTube)",
     searchPhOriginal: "Song and artist, e.g. Shape of You Ed Sheeran…",
-    modeHintFree: "Free, legal works; can be played and downloaded.",
+    modeHintFree: "Searches Free To Use first and filters out Premium tracks; Internet Archive is the fallback.",
     modeHintOriginal: "Original recordings play in YouTube's official player. No download — the goal here is playing the original. You can also paste YouTube, Spotify and SoundCloud links under “Play from link”.",
     ytNeedKey: "To search original songs, enter a free YouTube key in Settings. Without a key you can still paste a YouTube/Spotify/SoundCloud link under “Play from link”.",
     ytSearchFail: "YouTube search failed. Check your key or connection (YouTube may be blocked on your network).",
@@ -219,7 +221,7 @@ const I18N = {
     heroTitle: "Search for a song", heroSub: "Type a song or an artist, then tap a result to play it.",
     step1: "Search", step2: "Tap a song", step3: "It plays",
     modeAll: "All sources", searchPhAll: "Song or artist name…",
-    modeHintAll: "Searches YouTube (Google's music search), Spotify, Jamendo and the Internet Archive at once. Original songs play in the official players and can't be downloaded.",
+    modeHintAll: "Searches Free To Use, YouTube, Spotify, Jamendo and the Internet Archive at once. Original songs play in the official players and can't be downloaded.",
     allMissing: "Sources that are off: {list}. Turn them on in Settings.",
     srcAll: "All", srcOff: "key needed", srcConnect: "login needed"
   }
@@ -232,10 +234,12 @@ function t(key, vars) {
 }
 
 // ---------- Storage (always guarded) ----------
-function getRaw(k) { try { return localStorage.getItem(k) || ""; } catch { return ""; } }
-function setRaw(k, v) { try { localStorage.setItem(k, v); } catch {} }
-function getJSON(k, def) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : def; } catch { return def; } }
-function setJSON(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }
+const STORAGE_PREFIX = /\/(?:rz-mood-preview)(?:\/|$)/.test(location.pathname) ? "rz-preview:" : "";
+function storageKey(k) { return STORAGE_PREFIX + k; }
+function getRaw(k) { try { return localStorage.getItem(storageKey(k)) || ""; } catch { return ""; } }
+function setRaw(k, v) { try { localStorage.setItem(storageKey(k), v); } catch {} }
+function getJSON(k, def) { try { const v = localStorage.getItem(storageKey(k)); return v ? JSON.parse(v) : def; } catch { return def; } }
+function setJSON(k, v) { try { localStorage.setItem(storageKey(k), JSON.stringify(v)); } catch {} }
 
 // ---------- State ----------
 let tracks = [];          // the playback queue
@@ -307,8 +311,6 @@ function makeBtn(text, label, fn) {
 
 // ---------- Direct sources (no proxy / worker) ----------
 function A(path) { return ORIGIN + path; }
-function viaProxy(href) { return href; }
-function canonical(href) { return href; }
 function trackUrl(tr) { return tr.streamUrl || tr.orig; }
 
 function updateBadge(bad) {
@@ -760,7 +762,7 @@ function artFor(tr) {
   if (tr.img) return tr.img;
   if (tr.kind === "youtube" && tr.eid) return "https://i.ytimg.com/vi/" + encodeURIComponent(tr.eid) + "/mqdefault.jpg";
   const m = /archive\.org\/download\/([^/]+)/.exec(tr.orig || "");
-  return m ? viaProxy("https://archive.org/services/img/" + m[1]) : "";
+  return m ? "https://archive.org/services/img/" + m[1] : "";
 }
 function updatePlayerUI(tr) {
   $("player").classList.toggle("is-embed", tr.src === "embed");
@@ -1157,23 +1159,43 @@ function jamTrack(r) {
   };
 }
 function radioSource() {
-  const src = radio.source || "archive";
-  return src === "jamendo" && !jamId ? "archive" : src;
+  const src = radio.source || "freetouse";
+  return src === "jamendo" && !jamId ? "freetouse" : src;
 }
 
 // Pick and play a song with the same style as the current one.
 async function radioStepFreeToUse() {
   const cur = curTrack();
-  if (!cur || !cur.ftuId) return false;
-  const url = FTU_API + "/music/tracks/" + encodeURIComponent(cur.ftuId) + "/related?limit=30&order=similarity&sort=desc";
-  const response = await fetch(url, { headers: { "Accept": "application/json" } });
-  if (!response.ok) throw new Error("Free To Use related HTTP " + response.status);
-  const payload = await response.json();
-  const rows = Array.isArray(payload.data) ? payload.data : [];
-  const usable = rows.filter((row) => row && String(row.id) !== String(cur.ftuId) &&
-    !radio.seen.includes("ftu:" + row.id)).map(ftuTrack).filter(Boolean);
+  if (!cur) return false;
+  let usable = [];
+  if (cur.ftuId) {
+    try {
+      const url = FTU_API + "/music/tracks/" + encodeURIComponent(cur.ftuId) + "/related?limit=30&order=similarity&sort=desc";
+      const response = await fetch(url, { headers: { "Accept": "application/json" } });
+      if (response.ok) {
+        const payload = await response.json();
+        const rows = Array.isArray(payload.data) ? payload.data : [];
+        usable = rows.filter((row) => row && String(row.id) !== String(cur.ftuId) &&
+          !radio.seen.includes("ftu:" + row.id)).map(ftuTrack).filter(Boolean);
+      }
+    } catch {}
+  }
+  // For tracks from other catalogs, or when the related endpoint has no matches,
+  // search Free To Use using the current title and artist as a lightweight fallback.
+  if (!usable.length) {
+    const query = [cur.title, cur.artist || cur.album].filter(Boolean).join(" ").trim();
+    if (query) {
+      try {
+        const rows = await searchFreeToUse(query);
+        const currentTitle = String(cur.title || "").toLowerCase().trim();
+        usable = rows.filter((row) => row && row.ftuId &&
+          row.title.toLowerCase().trim() !== currentTitle &&
+          !radio.seen.includes("ftu:" + row.ftuId));
+      } catch {}
+    }
+  }
   if (!usable.length) return false;
-  const picked = usable[0];
+  const picked = usable[Math.floor(Math.random() * usable.length)];
   radio.seen = [...radio.seen, "ftu:" + picked.ftuId].slice(-60);
   tracks = [picked];
   recordPlays = true;
@@ -1188,10 +1210,9 @@ async function radioNext() {
   radioMsg("radioSearching");
   renderRadio();
   try {
-    const cur = curTrack();
-    if (cur && cur.src === "freetouse") {
+    if (radioSource() === "freetouse") {
       const found = await radioStepFreeToUse();
-      if (!found) radioMsg("radioNoResult", "bad");
+      if (!found) { await radioStepArchive(); }
       else radioMsg(null);
     } else if (radioSource() === "jamendo") await radioStepJamendo();
     else await radioStepArchive();
@@ -1295,9 +1316,10 @@ function setSource(src) {
 }
 function renderSource() {
   const eff = radioSource();
+  $("srcFreeToUse").setAttribute("aria-checked", eff === "freetouse" ? "true" : "false");
   $("srcJamendo").setAttribute("aria-checked", eff === "jamendo" ? "true" : "false");
   $("srcArchive").setAttribute("aria-checked", eff === "archive" ? "true" : "false");
-  $("radioSourceHint").textContent = eff === "jamendo" ? (!jamId ? t("srcNoKey") : t("srcHintJam")) : t("srcHintArc");
+  $("radioSourceHint").textContent = eff === "freetouse" ? t("srcHintFtu") : eff === "jamendo" ? (!jamId ? t("srcNoKey") : t("srcHintJam")) : t("srcHintArc");
 }
 
 function renderRadio() {
@@ -1356,6 +1378,7 @@ function renderRadio() {
   $("radioToggle").addEventListener("click", () => setRadio(!radio.on));
   $("radioNextBtn").addEventListener("click", () => radioNext());
   $("radioAutoBtn").addEventListener("click", () => { radio.manual = ""; renderRadio(); });
+  $("srcFreeToUse").addEventListener("click", () => setSource("freetouse"));
   $("srcJamendo").addEventListener("click", () => {
     if (!jamId) { toast(t("jamNeedsKeyToast")); showView("settings"); return; }
     setSource("jamendo");
@@ -1538,7 +1561,7 @@ $("modeFree").addEventListener("click", () => setMode("free"));
 $("modeOriginal").addEventListener("click", () => setMode("original"));
 
 // ---------- All sources: one search over YouTube, Spotify, Jamendo and the Internet Archive ----------
-const SRC_NAME = { youtube: "YouTube", spotify: "Spotify", jamendo: "Jamendo", archive: "Internet Archive" };
+const SRC_NAME = { freetouse: "Free To Use", youtube: "YouTube", spotify: "Spotify", jamendo: "Jamendo", archive: "Internet Archive" };
 let allData = null, allFilter = "all";
 class SrcErr extends Error { constructor(key, detail) { super(key); this.key = key; this.detail = detail || ""; } }
 
@@ -1595,7 +1618,7 @@ async function allSearch(query) {
   setStatus("searching");
   $("results").innerHTML = "";
   $("tracksBox").hidden = true;
-  const jobs = [], off = [];
+  const jobs = [["freetouse", searchFreeToUse(query)]], off = [];
   if (ytKey) jobs.push(["youtube", ytFetch(query)]); else off.push("YouTube (" + t("srcOff") + ")");
   if (spTok) jobs.push(["spotify", spFetch(query)]); else off.push("Spotify (" + t("srcConnect") + ")");
   if (jamId) jobs.push(["jamendo", jamFetch(query)]); else off.push("Jamendo (" + t("srcOff") + ")");
@@ -1706,7 +1729,7 @@ async function loadJamendoTrack(id) {
 
 function openFromUrl(raw) {
   let u;
-  try { u = new URL(canonical(raw.trim())); } catch { setStatus("invalidLink"); return; }
+  try { u = new URL(raw.trim()); } catch { setStatus("invalidLink"); return; }
   const emb = parseEmbed(u.href);
   if (emb) { openEmbedLink(emb); return; }
   if (u.hostname === "jamendo.com" || u.hostname.endsWith(".jamendo.com")) {
