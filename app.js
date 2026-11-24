@@ -74,6 +74,7 @@ const I18N = {
     jamTestOk: "✔ کلید معتبر است و اتصال برقرار شد. برای استفاده «ذخیره» را بزنید.",
     jamTestFail: "✘ کلید معتبر نیست یا اتصال به Jamendo برقرار نشد.",
     jamFail: "ارتباط با Jamendo ناموفق بود. کلید یا اتصال را بررسی کنید.",
+    ftuFail: "اتصال به Free To Use ناموفق بود؛ اینترنت، محدودیت CORS یا دسترسی API را بررسی کنید.",
     jamNoDownload: "دانلود این آهنگ توسط هنرمند مجاز نشده است.",
     jamNeedsKey: "این آهنگ از Jamendo است. برای پخش، Client ID رایگان Jamendo را در تنظیمات وارد کنید.",
     jamNeedsKeyToast: "ابتدا Client ID را در تنظیمات وارد کنید",
@@ -181,6 +182,7 @@ const I18N = {
     jamTestOk: "✔ The key is valid and Jamendo is reachable. Press “Save” to use it.",
     jamTestFail: "✘ The key is invalid or Jamendo can't be reached.",
     jamFail: "Couldn't reach Jamendo. Check your key or connection.",
+    ftuFail: "Free To Use could not be reached. Check your connection, CORS restrictions, or API access.",
     jamNoDownload: "The artist doesn't allow downloading this song.",
     jamNeedsKey: "This song is from Jamendo. To play it, enter your free Jamendo Client ID in Settings.",
     jamNeedsKeyToast: "Enter your Client ID in Settings first",
@@ -505,12 +507,23 @@ function ftuTrack(raw) {
 async function searchFreeToUse(query) {
   const url = FTU_API + "/music/tracks/search?query=" +
     encodeURIComponent(query) + "&limit=30&offset=0";
-  const response = await fetch(url, { headers: { "Accept": "application/json" } });
-  if (!response.ok) throw new Error("Free To Use HTTP " + response.status);
-  const payload = await response.json();
+  let response;
+  try {
+    response = await fetch(url, { headers: { "Accept": "application/json" } });
+  } catch {
+    throw new SrcErr("ftuFail", "network/CORS");
+  }
+  if (!response.ok) throw new SrcErr("ftuFail", "HTTP " + response.status);
+  let payload;
+  try { payload = await response.json(); }
+  catch { throw new SrcErr("ftuFail", "invalid JSON"); }
+  if (payload && payload.ok === false) throw new SrcErr("ftuFail", "API rejected request");
   const rows = Array.isArray(payload) ? payload :
     Array.isArray(payload.data) ? payload.data :
     Array.isArray(payload.tracks) ? payload.tracks : [];
+  if (!rows.length && payload && payload.pagination && payload.pagination.count > 0) {
+    throw new SrcErr("ftuFail", "unexpected response format");
+  }
   return rows.map(ftuTrack).filter(Boolean);
 }
 
