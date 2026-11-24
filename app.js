@@ -509,11 +509,11 @@ async function searchFreeToUse(query) {
     encodeURIComponent(query) + "&limit=30&offset=0";
   let response;
   try {
-    response = await fetch(url, { headers: { "Accept": "application/json" } });
+    response = await fetch(url, { headers: { "Accept": "application/json" }, credentials: "omit" });
   } catch {
     throw new SrcErr("ftuFail", "network/CORS");
   }
-  if (!response.ok) throw new SrcErr("ftuFail", "HTTP " + response.status);
+  if (!response.ok) throw new SrcErr("ftuFail", "HTTP " + response.status + (response.headers.get("X-Cors-Error") ? " / " + response.headers.get("X-Cors-Error") : ""));
   let payload;
   try { payload = await response.json(); }
   catch { throw new SrcErr("ftuFail", "invalid JSON"); }
