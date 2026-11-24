@@ -1683,7 +1683,9 @@ function renderAll() {
     if (s.err) {
       const p = document.createElement("p");
       p.className = "hint state src-note"; p.dataset.state = "bad";
-      p.textContent = t(s.err.key) + (s.err.detail ? " [" + s.err.detail + "]" : "");
+      const errorKey = s.err.key || (s.src === "freetouse" ? "ftuFail" : "connFailed");
+      const errorDetail = s.err.detail || (s.err.message && s.err.message !== errorKey ? s.err.message : "");
+      p.textContent = t(errorKey) + (errorDetail ? " [" + errorDetail + "]" : "");
       box.appendChild(p);
       return;
     }
