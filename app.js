@@ -457,7 +457,7 @@ function connectionFailed() {
 
 
 // ---------- Free To Use primary music search (public API v3) ----------
-const FTU_API = "https://api.freetouse.com/v3";
+const FTU_API = "https://proxy.cors.dev/https://api.freetouse.com/v3";
 const FTU_ATTRIBUTION_URL = "https://freetouse.com/music";
 
 function ftuAudioUrl(track) {
